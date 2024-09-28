@@ -53,6 +53,7 @@ There are 7014 candidates.
 library(readr)
 library(dplyr)
 library(knitr)
+library(tidyverse)
 
 fb_ads <- read_csv("data/fb_ads.csv")
 
@@ -76,7 +77,7 @@ Filter the data to just US House and US Senate races and use this to create a ti
 Use `knitr::kable()` to produce a nicely formatted table. In this call, set the `digits` arguments to 3 and use the `col.names` argument to pass a nicer set of names. You can use the following as a template:
 
 ```{r eval = FALSE}
-knitr::kable(my_table, col.names = c("Variable 1", "Variable 2", ...))
+knitr::kable(my_table, col.names = c("Party", "Incumbent Status", "Self-Promotion Ad Proportion))
 ```
 
 In the writeup, describe which type of candidate sponsored the most promoting ads on average. 
@@ -97,6 +98,7 @@ party_incumbent_promote <- fb_ads %>%
 knitr::kable(party_incumbent_promote, 
              digits = 3, 
              col.names = c("Party", "Incumbent Status", "Self-Promotion Ad Proportion"))
+party_incumbent_promote
 
 ```
 
@@ -115,7 +117,7 @@ Create a histogram of this variable for just the US House races. Save the ggplot
 
 ## Answer 3
 
-Most of the House candidates did not have more than 10 millino ad impressions on Facebook. 
+Most of the House candidates did not have more than 10 million ad impressions on Facebook. 
 
 
 ```{r}
@@ -123,14 +125,12 @@ plot_q3 <- fb_ads %>%
   filter(office == "US House") %>%
   mutate(impressions_millions = impressions / 1000000)
 
-ggplot(data = plot_q3, aes(x = impressions_millions)) +
+ggplot(plot_q3, aes(x = impressions_millions)) +
   geom_histogram(binwidth = 1) +
   labs(title = "Histogram of Impressions in the Millions (US House)", 
        x = "Impressions in Millions",
        y = "Number of Candidates")
-
-plot_q3
-
+fb_ads <- plot_q3
 ```
 
 
@@ -160,28 +160,28 @@ You do not need to exactly match the labels, but you should have informative lab
 library(ggplot2)
 library(dplyr)
 
-top_candidates <- fb_ads |> 
+fb_top_plot <- fb_ads |> 
   filter(office == "US House") |> 
   mutate(impressions_millions = impressions / 1000000) |> 
   arrange(desc(impressions_millions)) |> 
   slice_head(n = 15) |> 
   mutate(cand_name_last = factor(cand_name_last, levels = cand_name_last[order(impressions_millions)])) 
 
-fb_top_plot <- ggplot(data = top_candidates, aes(x = impressions_millions, y = cand_name_last, fill = party)) +
+fb_top_plot <- ggplot(data = fb_top_plot, 
+                      aes(
+                        x = impressions_millions, 
+                        y = cand_name_last, 
+                        fill = party)) +
   geom_bar(stat = "identity") +
-  labs(title = "Top 15 US House Candidates by Facebook Ad Impressions",
-       x = "Impressions (in Millions)",
-       y = "Candidate Last Name",
-       fill = "Party") + 
-  scale_fill_manual(values = c(R = "red", D = "blue")) +  
-  theme_minimal()
+  labs(title = "Top 15 House Candidate Facebook Ad Impressions, 2017-2018",
+       x = "Facebook Ad Impressions (in millions)",
+       y = "     ",
+       fill = "party") + 
+  scale_fill_manual(values = c(R = "red", D = "blue"))
 
 
 fb_top_plot
-
 ```
-
-
 
 
 \newpage
