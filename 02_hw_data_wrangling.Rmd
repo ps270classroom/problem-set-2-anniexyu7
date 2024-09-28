@@ -56,9 +56,14 @@ library(knitr)
 
 fb_ads <- read_csv("data/fb_ads.csv")
 
-incumbancy_table <- fb_ads |>
-  count(incumbency, sort = TRUE)
-kable(incumbancy_table)
+incumbency_table <- fb_ads %>%
+  group_by(incumbency) %>%
+  summarise(count = n())
+
+total_candidates <- nrow(fb_ads)
+print(paste("There are", total_candidates, "candidates."))
+
+knitr::kable(incumbency_table, col.names = c("Incumbency Status", "Number of Candidates"))
 ```
 
 
@@ -83,17 +88,16 @@ In the writeup, describe which type of candidate sponsored the most promoting ad
 Democratic Incumbents were the type of candidate that sponsored the most promoting ads. 
 
 ```{r}
-fb_ads
-
-party_incumbent_promote <- fb_ads |>
-  filter(office %in% c("US Senate", "US House")) |>
-  group_by(party, incumbency) |>
-  summarize(promote_prop = mean(ad_tone_promote, na.rm = TRUE)) |>
+party_incumbent_promote <- fb_ads %>%
+  filter(office %in% c("US Senate", "US House")) %>%
+  group_by(party, incumbency) %>%
+  summarise(promote_prop = mean(ad_tone_promote, na.rm = TRUE)) %>%
   arrange(desc(promote_prop))
 
-party_incumbent_promote
+knitr::kable(party_incumbent_promote, 
+             digits = 3, 
+             col.names = c("Party", "Incumbent Status", "Self-Promotion Ad Proportion"))
 
-knitr::kable(party_incumbent_promote, digits = 3, col.names = c("Party", "Incumbent Status", "Self-Promotion Ad Proportion"))
 ```
 
 
@@ -115,20 +119,18 @@ Most of the House candidates did not have more than 10 millino ad impressions on
 
 
 ```{r}
-library(ggplot2)
-
-plot_q3 <- fb_ads |> 
-  filter(office == "US House") |>
+plot_q3 <- fb_ads %>%
+  filter(office == "US House") %>%
   mutate(impressions_millions = impressions / 1000000)
-  ggplot(data = plot_q3,
-         aes(
-           x = impressions_millions)) +
-  geom_histogram()+
-    labs(title = "Histogram of Impressions in the Millions (US House)", 
-         x = "Impressions in Millions",
-         y = "Number of Candidates")
 
-print(plot_q3)
+ggplot(data = plot_q3, aes(x = impressions_millions)) +
+  geom_histogram(binwidth = 1) +
+  labs(title = "Histogram of Impressions in the Millions (US House)", 
+       x = "Impressions in Millions",
+       y = "Number of Candidates")
+
+plot_q3
+
 ```
 
 
@@ -152,6 +154,33 @@ You do not need to exactly match the labels, but you should have informative lab
  **Rubric:** 3pts for correct axes (autograder); 3pts for correct data fed into `ggplot` (autograder); 3pts for the correct ordering of the y-axis (PDF); 3pts for fill being mapped to `party` (autograder); 1pt for plot being in knitted output and having informative labels (PDF)
 
 ## Answer 4
+
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+top_candidates <- fb_ads |> 
+  filter(office == "US House") |> 
+  mutate(impressions_millions = impressions / 1000000) |> 
+  arrange(desc(impressions_millions)) |> 
+  slice_head(n = 15) |> 
+  mutate(cand_name_last = factor(cand_name_last, levels = cand_name_last[order(impressions_millions)])) 
+
+fb_top_plot <- ggplot(data = top_candidates, aes(x = impressions_millions, y = cand_name_last, fill = party)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Top 15 US House Candidates by Facebook Ad Impressions",
+       x = "Impressions (in Millions)",
+       y = "Candidate Last Name",
+       fill = "Party") + 
+  scale_fill_manual(values = c(R = "red", D = "blue")) +  
+  theme_minimal()
+
+
+fb_top_plot
+
+```
+
 
 
 
