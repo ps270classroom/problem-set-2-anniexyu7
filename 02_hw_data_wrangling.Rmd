@@ -1,6 +1,6 @@
 ---
 title: "Problem Set 2: Data Wrangling"
-author: Your Name Here
+author: Annie Yu
 output: pdf_document
 ---
 
@@ -42,9 +42,24 @@ Load the data using the `read_csv` function and save it as `fb_ads` (using this 
 Use `dplyr` functions to create a table with the number of candidates in each type of incumbency status in the data set. Save this table output as `incumbency_table` (for the autograder). Use the function `knitr::kable()` on this table to have a nicely formatted table produced in the knitted output. 
 
  **Rubric**: 2pt for loading the data (autograder); 1pt for describing the number of candidates (PDF); 3pts for creating the table (autograder); 2pt for using `kable()` to nicely format the output (PDF)
+ 
+
 
 ## Answer 1
 
+There are 7014 candidates. 
+
+```{r}
+library(readr)
+library(dplyr)
+library(knitr)
+
+fb_ads <- read_csv("data/fb_ads.csv")
+
+incumbancy_table <- fb_ads |>
+  count(incumbency, sort = TRUE)
+kable(incumbancy_table)
+```
 
 
 \newpage
@@ -65,6 +80,22 @@ In the writeup, describe which type of candidate sponsored the most promoting ad
 
 ## Answer 2
 
+Democratic Incumbents were the type of candidate that sponsored the most promoting ads. 
+
+```{r}
+fb_ads
+
+party_incumbent_promote <- fb_ads |>
+  filter(office %in% c("US Senate", "US House")) |>
+  group_by(party, incumbency) |>
+  summarize(promote_prop = mean(ad_tone_promote, na.rm = TRUE)) |>
+  arrange(desc(promote_prop))
+
+party_incumbent_promote
+
+knitr::kable(party_incumbent_promote, digits = 3, col.names = c("Party", "Incumbent Status", "Self-Promotion Ad Proportion"))
+```
+
 
 
 \newpage
@@ -80,6 +111,25 @@ Create a histogram of this variable for just the US House races. Save the ggplot
 
 ## Answer 3
 
+Most of the House candidates did not have more than 10 millino ad impressions on Facebook. 
+
+
+```{r}
+library(ggplot2)
+
+plot_q3 <- fb_ads |> 
+  filter(office == "US House") |>
+  mutate(impressions_millions = impressions / 1000000)
+  ggplot(data = plot_q3,
+         aes(
+           x = impressions_millions)) +
+  geom_histogram()+
+    labs(title = "Histogram of Impressions in the Millions (US House)", 
+         x = "Impressions in Millions",
+         y = "Number of Candidates")
+
+print(plot_q3)
+```
 
 
 \newpage
