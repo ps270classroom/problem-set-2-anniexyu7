@@ -140,6 +140,7 @@ plot_q3 <- fb_ads %>%
   filter(office == "US House") %>%
   mutate(impressions_millions = impressions / 1e6)
 
+str(plot_q3)
 
 ggplot(data = plot_q3, aes(x = impressions_millions)) +
   geom_histogram(binwidth = 1) +
